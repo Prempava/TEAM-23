@@ -173,3 +173,59 @@ Synthetic data written to: [Path/to/your/project]/data/synthetic_data.csv
 
 Next Step: Once the synthetic_data.csv file is generated, the next stage is Data Preprocessing 
 and Model Training using the XGBoost classifier.
+
+2. 🧠 ML Training Module (train_classifier.py)
+This module executes the crucial second stage of the AI-CPS: Preprocessing the synthetic data and training the XGBoost Classification Model.
+
+The goal is to teach the model how to map the raw land and project parameters to the optimal Building Template, as defined by the logic in the data generation step.
+
+⚙️ Module Functionality
+The script performs the following sequence of operations:
+1.Data Ingestion: Reads the synthetic_data.csv file generated in the previous step.
+2.Label Encoding: Converts the categorical target variable (label_template - e.g., 'duplex', 'warehouse') into numerical labels (label_numeric) for the classifier.
+     ->The fitted LabelEncoder is immediately saved (label_encoder.joblib) for later use in production, ensuring predictions can be converted back to meaningful names.
+3.Feature Selection: Defines the necessary input features (X) and the target variable (y).
+4.Data Splitting: Splits the dataset into training (80%) and testing (20%) sets, using stratify=y to ensure an even distribution of building types in both sets.
+5.Preprocessing Pipeline: Constructs a ColumnTransformer and integrates it into a Pipeline.
+      -Categorical Features (cat_cols): Use OneHotEncoder to convert categorical text data (project_requirement, plot_shape) into a numerical format readable by the model.
+      -Numerical Features (num_cols): Passed through without transformation.
+6.Model Training: The XGBClassifier is trained using the preprocessed training data.
+7.Evaluation: Predicts on the test set and prints a detailed classification_report.
+8.Model Serialization: Saves the entire preprocessing and model pipeline (classifier.joblib) for deployment in the FastAPI backend.
+
+💻 Dependencies
+This script relies heavily on standard data science libraries:
+-pandas: Data manipulation.
+-joblib: Serialization (saving/loading models and encoders).
+-sklearn: Data splitting, preprocessing tools (LabelEncoder, OneHotEncoder, ColumnTransformer, Pipeline).
+-xgboost: The machine learning classifier.
+
+🛠️ Key Components Saved
+The training module saves two critical files to the models/ directory:
+File Name,Content,Purpose
+label_encoder.joblib,The fitted sklearn.preprocessing.LabelEncoder.,"Mandatory for converting the model's numerical output (0, 1, 2...) back into the original building names (e.g., 'duplex')."
+classifier.joblib,The complete sklearn.pipeline.Pipeline object.,The trained XGBoost model combined with all necessary preprocessing steps (One-Hot Encoding). This single file is ready for deployment.
+
+▶️ Execution and Results
+1. Execute the Training Script
+Ensure you are in the directory containing the script and the synthetic_data.csv file is correctly located (as defined by the DATA path).
+python train_classifier.py
+
+2. Expected Output
+The script will first print the list of trained building classes, followed by the comprehensive performance report:
+Label classes: ['duplex' 'shop_small' 'single_storey_house' 'warehouse']
+              precision    recall  f1-score   support
+
+           0       0.96      0.97      0.96       500  # Example for 'duplex'
+           1       0.98      0.95      0.96       500  # Example for 'shop_small'
+           2       0.94      0.93      0.94       500  # Example for 'single_storey_house'
+           3       0.99      0.99      0.99       500  # Example for 'warehouse'
+
+    accuracy                           0.97      2000
+   macro avg       0.97      0.97      0.97      2000
+weighted avg       0.97      0.97      0.97      2000
+
+Model saved to: [Path/to/project/models/classifier.joblib]
+
+Note: The actual output will vary based on the random seed and data generation, but high scores are expected given the rule-based data generation.
+

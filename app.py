@@ -10,6 +10,7 @@ from .parameter import generate_floorplan
 from .material import estimate_materials
 from .image import generate_building_images
 from .cost import estimate_cost
+from explainer import generate_ai_explanation
 
 app = FastAPI(title="AI-Based Construction Planning System")
 

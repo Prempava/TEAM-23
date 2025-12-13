@@ -396,3 +396,93 @@ python src/material_estimator.py
 Example Output (for $120 m^2$ and 1 floor)
 
 {'concrete_m3': 15.12, 'steel_kg': 7200, 'bricks_count': 1394}
+
+
+5. 🌐 FastAPI Deployment Module (src/main.py)
+
+This module serves as the AI-Based Construction Planning System (AI-CPS) API Endpoint. It integrates the trained Machine Learning model, the Parametric Floorplan Generator, and the Material Estimator into a single, high-performance web service using FastAPI.
+
+This is the central nervous system of the project, handling user input, orchestrating the predictions, and returning the complete planning package.
+
+⚙️ Core Functionality and Architecture
+
+The application defines a single main endpoint, /predict, which executes the entire AI-CPS pipeline sequentially:
+
+1.Input Handling: Receives all land and project parameters via a POST request (using Form data).
+
+2.Model Loading: Loads the saved classifier.joblib pipeline and label_encoder.joblib on startup.
+
+3.ML Prediction: The input data is passed to the trained pipeline (model.predict(X)), which outputs a numerical label. This is immediately converted to the human-readable Predicted Building Type (e.g., "duplex", "warehouse") using the label_encoder.
+
+4.Confidence Score: Calculates the model's confidence in its prediction using model.predict_proba(X).
+
+5.Floorplan Generation: Calls the imported generate_floorplan function with the predicted type and area.
+
+6.Material Estimation: Calls the imported estimate_materials function with the area and number of floors.
+
+7.Response: Returns a single JSON response containing the prediction, confidence, floorplan breakdown, and material list.
+
+🚀 Deployment and Usage
+
+Prerequisites
+
+Ensure the following components are correctly structured in your project directory:
+
+1.The trained model files are located at: models/classifier.joblib and models/label_encoder.joblib.
+
+2.The utility files (parameter.py and material.py) are correctly imported (as shown in the script).
+
+1. Install Dependencies
+   
+Ensure your environment has the core backend and ML libraries installed:
+
+pip install fastapi uvicorn pandas joblib xgboost scikit-learn
+
+2. Run the API Server
+   
+Start the application using the ASGI server, Uvicorn (assuming the script is located in src/main.py):
+
+uvicorn src.main:app --reload
+
+->The application will be accessible at: http://127.0.0.1:8000.
+
+3. Access Interactive Documentation (Swagger UI)
+
+You can test the endpoint and view the required input parameters directly at the automatically generated Swagger UIpage:
+
+$$\text{[http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)}$$
+
+4. Example Request Payload (API Test)
+   
+The endpoint expects multipart/form-data inputs (as defined by Form(...)).
+
+Parameter Name,Data Type,Example Value,Description
+area_m2,float,250.0,Land area.
+slope_percent,float,2.5,Site gradient.
+bearing_capacity_kpa,float,180.0,Soil strength.
+project_requirement,string,"""house""",User's stated goal.
+plot_shape,string,"""rectangular""",Shape of the land plot.
+num_floors,int,2,Number of stories requested.
+budget_usd,float,150000.0,Total budget estimate.
+
+✅ Final Output Structure
+
+The API will return a structured JSON response similar to the following:
+
+{
+  "Predicted Building Type": "duplex",
+  "Confidence": 0.987,
+  "Floorplan": {
+    "template": "duplex",
+    "total_area_m2": 250.0,
+    "approx_side_m": 15.81,
+    "rooms": [
+      // ... list of rooms with areas and dimensions ...
+    ]
+  },
+  "Materials Required": {
+    "concrete_m3": 39.38,
+    "steel_kg": 30000,
+    "bricks_count": 3968
+  }
+}

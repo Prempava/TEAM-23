@@ -147,6 +147,7 @@ target variable (label_template).
 
 
 📈 Data Schema (Columns)
+
 The generated CSV file contains the following columns, which will serve as the features (inputs) and the label (output) for the ML model:
 
 Column Name,Type,Description,Role in ML
@@ -184,7 +185,7 @@ Synthetic data written to: [Path/to/your/project]/data/synthetic_data.csv
 Next Step: Once the synthetic_data.csv file is generated, the next stage is Data Preprocessing and Model Training using the XGBoost classifier.
 
 2. 🧠 ML Training Module (train_classifier.py)
-3. 
+   
 This module executes the crucial second stage of the AI-CPS: Preprocessing the synthetic data and training the XGBoost Classification Model.
 
 The goal is to teach the model how to map the raw land and project parameters to the optimal Building Template, as defined by the logic in the data generation step.

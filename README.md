@@ -182,22 +182,35 @@ The goal is to teach the model how to map the raw land and project parameters to
 ⚙️ Module Functionality
 The script performs the following sequence of operations:
 1.Data Ingestion: Reads the synthetic_data.csv file generated in the previous step.
+
 2.Label Encoding: Converts the categorical target variable (label_template - e.g., 'duplex', 'warehouse') into numerical labels (label_numeric) for the classifier.
+
      ->The fitted LabelEncoder is immediately saved (label_encoder.joblib) for later use in production, ensuring predictions can be converted back to meaningful names.
+     
 3.Feature Selection: Defines the necessary input features (X) and the target variable (y).
+
 4.Data Splitting: Splits the dataset into training (80%) and testing (20%) sets, using stratify=y to ensure an even distribution of building types in both sets.
+
 5.Preprocessing Pipeline: Constructs a ColumnTransformer and integrates it into a Pipeline.
+
       -Categorical Features (cat_cols): Use OneHotEncoder to convert categorical text data (project_requirement, plot_shape) into a numerical format readable by the model.
+      
       -Numerical Features (num_cols): Passed through without transformation.
+      
 6.Model Training: The XGBClassifier is trained using the preprocessed training data.
+
 7.Evaluation: Predicts on the test set and prints a detailed classification_report.
+
 8.Model Serialization: Saves the entire preprocessing and model pipeline (classifier.joblib) for deployment in the FastAPI backend.
 
 💻 Dependencies
 This script relies heavily on standard data science libraries:
 -pandas: Data manipulation.
+
 -joblib: Serialization (saving/loading models and encoders).
+
 -sklearn: Data splitting, preprocessing tools (LabelEncoder, OneHotEncoder, ColumnTransformer, Pipeline).
+
 -xgboost: The machine learning classifier.
 
 🛠️ Key Components Saved
@@ -229,3 +242,125 @@ Model saved to: [Path/to/project/models/classifier.joblib]
 
 Note: The actual output will vary based on the random seed and data generation, but high scores are expected given the rule-based data generation.
 
+3. 📐 Floorplan Generator Module
+ (parametric_generator.py)
+
+This module implements the Rule-Based/Parametric Design Logic used in the AI-CPS. Its primary function is to translate the Predicted Building Type (output from the ML model) and the Allocated Area into a conceptual, spatial breakdown of the floorplan.
+
+This output forms the basis for the Material Estimation module and provides the user with the first visual idea of their project layout.
+
+⚙️ Module Functionality
+The generate_floorplan function executes the following steps:
+
+1.Template Lookup: Retrieves the list of required rooms for the template_name (e.g., "duplex" requires living, kitchen, two bedroom, and bath).
+
+2.Equal Area Allocation: For simplicity, the total available area (area_m2) is divided equally among all required rooms.
+
+3.Dimension Estimation: Calculates the approximate side length of the entire structure ($\sqrt{\text{Area}}$).
+
+4.Room Dimensioning: For each room, approximate dimensions (width and height) are calculated using a fixed aspect ratio (derived from $\text{Area} = \text{Width} \times \text{Height}$, where $\text{Height} \approx 1.5 \times \text{Width}$ is implied by $W = \sqrt{A/1.5}$).
+
+Output: A structured JSON dictionary containing the total area, approximate overall side length, and a list of all rooms with their allocated areas and estimated dimensions.
+
+🛠️ Key Data Structure (TEMPLATES)
+The core of the rule-based system is the TEMPLATES dictionary, which defines the fundamental requirements for each building type:
+
+Template Name,Required Rooms,Minimum Total Area (m2)
+single_storey_house,"living, kitchen, bedroom, bath",50
+duplex,"living, kitchen, 2x bedroom, bath",120
+warehouse,"open_space, office, toilet",300
+shop_small,"retail, storage, toilet",40
+
+📐 Mathematical Logic
+The script uses basic area formulas for dimension estimation:
+
+1.Total Side Estimate:$$\text{Side} = \sqrt{\text{Area}_{\text{Total}}}$$
+
+2.Room Dimension Estimate (Assuming Aspect Ratio $H/W \approx 1.5$):For a given room area $A_{room}$, the dimensions are approximated:
+       $$\text{Width} \approx \sqrt{A_{\text{room}} / 1.5}$$
+                                                                                   $$\text{Height} \approx A_{\text{room}} / \text{Width}$$
+
+
+Note: The current implementation focuses on area distribution; the final floorplan geometry (placement, adjacency) would be handled by a more complex layout algorithm in a production environment.
+
+▶️ Execution Example
+To test the module independently, run the script directly:
+     python src/parametric_generator.py
+
+Example JSON Output (for single_storey_house with $120 m^2$)
+       
+{
+  "template": "single_storey_house",
+  "total_area_m2": 120,
+  "approx_side_m": 10.95,
+  "rooms": [
+    {
+      "name": "living",
+      "area_m2": 30.0,
+      "approx_width_m": 4.47,
+      "approx_height_m": 6.71
+    },
+    // ... other rooms ...
+  ]
+}
+
+4. 🧱 Material Estimation Module (material_estimator.py)
+This module is the final stage of the AI-CPS processing pipeline. It takes the key geometric outputs—the total floor area and number of floors—and applies simplified engineering calculation rules to provide a preliminary Bill of Quantities (BoQ) for major construction materials.
+
+⚙️ Module Functionality
+The estimate_materials function calculates the requirements for three core components: Concrete, Steel, and Masonry (Bricks).
+
+1. Concrete Volume Calculation (Slab and Structural Frame)
+This estimation assumes a constant slab thickness and a small factor for columns and beams (structural frame):
+
+->Slab Volume:
+            $$\text{Concrete}_{\text{Slab}} = \text{Area}_{\text{m2}} \times \text{Slab Thickness}_{\text{m}} \times \text{Floors}$$
+
+     Slab Thickness is set to $0.12 m$.
+
+->Total Volume: The calculated slab volume is increased by a 5% factor ($1.05$) to conservatively account for the concrete needed in columns, beams, and foundation pads (assuming a basic, shallow foundation).
+
+->Code Implementation:
+
+concrete_volume_m3 = area_m2 * slab_thickness_m * num_floors
+concrete_volume_m3 *= 1.05  # Factor for columns, beams, foundation
+
+2. Steel (Reinforcement) Mass Calculation
+Steel estimation uses a standard industry unit rate based on the total constructed floor area:
+
+->Unit Rate: A rate of $60 \text{ kg/m}^2$ of total area is applied, which is typical for reinforced concrete structures.
+->Total Steel:
+$$\text{Steel}_{\text{kg}} = 60 \times \text{Area}_{\text{m2}} \times \text{Floors}$$
+
+3. Masonry (Bricks/Blocks) Count Calculation
+This estimation focuses on the external walls based on the building's perimeter:
+
+->Perimeter Estimate: Assumes a square building shape for simplicity: $\text{Perimeter} \approx 4 \times \sqrt{\text{Area}_{\text{m2}}}$.
+
+->Total Wall Area: $\text{Wall Area} = \text{Perimeter} \times \text{Wall Height}$
+   -Wall Height is $3$ meters per floor.
+   
+->Brick Count: Calculates the number of bricks required by dividing the wall area by the standard area of one brick (assumed to be $0.075 m^2$ including mortar).
+
+->Code Implementation (Simplified Perimeter):
+perim = 4 * math.sqrt(area_m2) 
+wall_area = perim * (3 * num_floors)
+bricks = int(wall_area / 0.075)
+
+⚠️ Assumptions and Limitations
+The estimation provides preliminary figures for feasibility, but users should note the following simplifications:
+
+1.Uniform Structure: Assumes a simple structural frame (slab and beam) suitable for the inputs. It does not account for complex foundation types (e.g., piles).
+
+2.Square Geometry: The perimeter is calculated assuming a square footprint, which may overestimate/underestimate for irregular shapes (L-shape, etc.).
+
+3.No Openings/Waste: The calculation does not deduct for windows, doors, or wall openings, nor does it factor in construction waste.
+
+▶️ Execution Example
+To test the estimation independently, run the script directly:
+
+python src/material_estimator.py
+
+Example Output (for $120 m^2$ and 1 floor)
+
+{'concrete_m3': 15.12, 'steel_kg': 7200, 'bricks_count': 1394}

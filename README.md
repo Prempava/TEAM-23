@@ -115,6 +115,7 @@ Data Processing,"Pandas, NumPy",Efficient data handling and numerical computatio
 Documentation,ReportLab (optional),Library for generating structured PDF reports from system outputs.
 
 1. 📊 Data Generation Module (datageneration.py)
+
 This module is responsible for creating the synthetic training data required for the Machine Learning (ML)
 Classification component of the AI-Based Construction Planning System (AI-CPS).
 The generated data simulates various combinations of land parameters, soil conditions,
@@ -137,8 +138,11 @@ mapped to the soil type and then randomized to simulate real-world variance.
 
 4.Labeling Logic (choose_template function): This critical function implements simple rule-based expert logic to assign the final 
 target variable (label_template).
+
     ->Large areas ( > 1200 m^2) or explicit warehouse requests are labeled as "warehouse".
+    
     ->Poor soil bearing capacity ( < 100 kpa) combined with small area ( < 200 m^2) defaults to "single_storey_house".
+    
     ->Moderate soil ( \ge 100 kpa) and medium area ( > 200 m^2) for a house request defaults to "duplex".
 
 
@@ -163,16 +167,18 @@ Other Columns,Numeric/Cat,"Plot shape, orientation, budget (auxiliary data).",Au
    ->Ensure you have a modern Python environment installed.
 
 Steps to Generate Data:
+
 1.Navigate to the directory containing datageneration.py.
+
 2.Run the script using the Python interpreter:
       python datageneration.py
+      
 Expected Output
 The script will successfully create the output directory (data/) if it doesn't exist and print a confirmation message:
 
 Synthetic data written to: [Path/to/your/project]/data/synthetic_data.csv
 
-Next Step: Once the synthetic_data.csv file is generated, the next stage is Data Preprocessing 
-and Model Training using the XGBoost classifier.
+Next Step: Once the synthetic_data.csv file is generated, the next stage is Data Preprocessing and Model Training using the XGBoost classifier.
 
 2. 🧠 ML Training Module (train_classifier.py)
 This module executes the crucial second stage of the AI-CPS: Preprocessing the synthetic data and training the XGBoost Classification Model.
@@ -205,6 +211,7 @@ The script performs the following sequence of operations:
 
 💻 Dependencies
 This script relies heavily on standard data science libraries:
+
 -pandas: Data manipulation.
 
 -joblib: Serialization (saving/loading models and encoders).
@@ -214,17 +221,21 @@ This script relies heavily on standard data science libraries:
 -xgboost: The machine learning classifier.
 
 🛠️ Key Components Saved
+
 The training module saves two critical files to the models/ directory:
 File Name,Content,Purpose
 label_encoder.joblib,The fitted sklearn.preprocessing.LabelEncoder.,"Mandatory for converting the model's numerical output (0, 1, 2...) back into the original building names (e.g., 'duplex')."
 classifier.joblib,The complete sklearn.pipeline.Pipeline object.,The trained XGBoost model combined with all necessary preprocessing steps (One-Hot Encoding). This single file is ready for deployment.
 
 ▶️ Execution and Results
+
 1. Execute the Training Script
+
 Ensure you are in the directory containing the script and the synthetic_data.csv file is correctly located (as defined by the DATA path).
 python train_classifier.py
 
 2. Expected Output
+
 The script will first print the list of trained building classes, followed by the comprehensive performance report:
 Label classes: ['duplex' 'shop_small' 'single_storey_house' 'warehouse']
               precision    recall  f1-score   support
@@ -250,6 +261,7 @@ This module implements the Rule-Based/Parametric Design Logic used in the AI-CPS
 This output forms the basis for the Material Estimation module and provides the user with the first visual idea of their project layout.
 
 ⚙️ Module Functionality
+
 The generate_floorplan function executes the following steps:
 
 1.Template Lookup: Retrieves the list of required rooms for the template_name (e.g., "duplex" requires living, kitchen, two bedroom, and bath).
@@ -263,6 +275,7 @@ The generate_floorplan function executes the following steps:
 Output: A structured JSON dictionary containing the total area, approximate overall side length, and a list of all rooms with their allocated areas and estimated dimensions.
 
 🛠️ Key Data Structure (TEMPLATES)
+
 The core of the rule-based system is the TEMPLATES dictionary, which defines the fundamental requirements for each building type:
 
 Template Name,Required Rooms,Minimum Total Area (m2)
@@ -272,6 +285,7 @@ warehouse,"open_space, office, toilet",300
 shop_small,"retail, storage, toilet",40
 
 📐 Mathematical Logic
+
 The script uses basic area formulas for dimension estimation:
 
 1.Total Side Estimate:$$\text{Side} = \sqrt{\text{Area}_{\text{Total}}}$$
@@ -284,7 +298,9 @@ The script uses basic area formulas for dimension estimation:
 Note: The current implementation focuses on area distribution; the final floorplan geometry (placement, adjacency) would be handled by a more complex layout algorithm in a production environment.
 
 ▶️ Execution Example
+
 To test the module independently, run the script directly:
+
      python src/parametric_generator.py
 
 Example JSON Output (for single_storey_house with $120 m^2$)
@@ -305,12 +321,15 @@ Example JSON Output (for single_storey_house with $120 m^2$)
 }
 
 4. 🧱 Material Estimation Module (material_estimator.py)
+   
 This module is the final stage of the AI-CPS processing pipeline. It takes the key geometric outputs—the total floor area and number of floors—and applies simplified engineering calculation rules to provide a preliminary Bill of Quantities (BoQ) for major construction materials.
 
 ⚙️ Module Functionality
+
 The estimate_materials function calculates the requirements for three core components: Concrete, Steel, and Masonry (Bricks).
 
 1. Concrete Volume Calculation (Slab and Structural Frame)
+   
 This estimation assumes a constant slab thickness and a small factor for columns and beams (structural frame):
 
 ->Slab Volume:
@@ -326,13 +345,16 @@ concrete_volume_m3 = area_m2 * slab_thickness_m * num_floors
 concrete_volume_m3 *= 1.05  # Factor for columns, beams, foundation
 
 2. Steel (Reinforcement) Mass Calculation
+
 Steel estimation uses a standard industry unit rate based on the total constructed floor area:
 
 ->Unit Rate: A rate of $60 \text{ kg/m}^2$ of total area is applied, which is typical for reinforced concrete structures.
+
 ->Total Steel:
 $$\text{Steel}_{\text{kg}} = 60 \times \text{Area}_{\text{m2}} \times \text{Floors}$$
 
 3. Masonry (Bricks/Blocks) Count Calculation
+   
 This estimation focuses on the external walls based on the building's perimeter:
 
 ->Perimeter Estimate: Assumes a square building shape for simplicity: $\text{Perimeter} \approx 4 \times \sqrt{\text{Area}_{\text{m2}}}$.
@@ -348,6 +370,7 @@ wall_area = perim * (3 * num_floors)
 bricks = int(wall_area / 0.075)
 
 ⚠️ Assumptions and Limitations
+
 The estimation provides preliminary figures for feasibility, but users should note the following simplifications:
 
 1.Uniform Structure: Assumes a simple structural frame (slab and beam) suitable for the inputs. It does not account for complex foundation types (e.g., piles).
@@ -357,6 +380,7 @@ The estimation provides preliminary figures for feasibility, but users should no
 3.No Openings/Waste: The calculation does not deduct for windows, doors, or wall openings, nor does it factor in construction waste.
 
 ▶️ Execution Example
+
 To test the estimation independently, run the script directly:
 
 python src/material_estimator.py

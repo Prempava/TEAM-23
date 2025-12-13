@@ -163,7 +163,9 @@ label_template,Categorical,Optimal Building Type assigned by rules.,Target Varia
 Other Columns,Numeric/Cat,"Plot shape, orientation, budget (auxiliary data).",Auxiliary
 
 ▶️ Execution
+
    Prerequisites
+   
    ->Ensure you have a modern Python environment installed.
 
 Steps to Generate Data:
@@ -174,6 +176,7 @@ Steps to Generate Data:
       python datageneration.py
       
 Expected Output
+
 The script will successfully create the output directory (data/) if it doesn't exist and print a confirmation message:
 
 Synthetic data written to: [Path/to/your/project]/data/synthetic_data.csv
@@ -181,12 +184,15 @@ Synthetic data written to: [Path/to/your/project]/data/synthetic_data.csv
 Next Step: Once the synthetic_data.csv file is generated, the next stage is Data Preprocessing and Model Training using the XGBoost classifier.
 
 2. 🧠 ML Training Module (train_classifier.py)
+3. 
 This module executes the crucial second stage of the AI-CPS: Preprocessing the synthetic data and training the XGBoost Classification Model.
 
 The goal is to teach the model how to map the raw land and project parameters to the optimal Building Template, as defined by the logic in the data generation step.
 
 ⚙️ Module Functionality
+
 The script performs the following sequence of operations:
+
 1.Data Ingestion: Reads the synthetic_data.csv file generated in the previous step.
 
 2.Label Encoding: Converts the categorical target variable (label_template - e.g., 'duplex', 'warehouse') into numerical labels (label_numeric) for the classifier.
@@ -210,6 +216,7 @@ The script performs the following sequence of operations:
 8.Model Serialization: Saves the entire preprocessing and model pipeline (classifier.joblib) for deployment in the FastAPI backend.
 
 💻 Dependencies
+
 This script relies heavily on standard data science libraries:
 
 -pandas: Data manipulation.

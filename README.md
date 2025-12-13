@@ -113,3 +113,63 @@ Backend Framework,FastAPI,"Modern, fast (ASGI) framework for production-ready AP
 Data Processing,"Pandas, NumPy",Efficient data handling and numerical computation.
 
 Documentation,ReportLab (optional),Library for generating structured PDF reports from system outputs.
+
+1. 📊 Data Generation Module (datageneration.py)
+This module is responsible for creating the synthetic training data required for the Machine Learning (ML)
+Classification component of the AI-Based Construction Planning System (AI-CPS).
+The generated data simulates various combinations of land parameters, soil conditions,
+ and project requirements, linking them to an optimal pre-defined Building Template (Label).
+
+📁 File Location and Output
+
+Script: datageneration.py
+Output File: The script automatically creates and saves the generated dataset to: ../data/synthetic_data.csv
+
+⚙️ How the Data is Generated
+The script generates 2000 rows of simulated construction project data, featuring the following steps:
+
+1.Land Measurements: Random plot dimensions (l, w) and area are generated.
+
+2.Soil Properties: A random soil_type is chosen (clay, sand, loam, laterite). A base bearing_capacity_kpa is
+mapped to the soil type and then randomized to simulate real-world variance.
+
+3.Project Parameters: Random values for slope_percent, project_requirement (house, shop, warehouse), and num_floors are assigned.
+
+4.Labeling Logic (choose_template function): This critical function implements simple rule-based expert logic to assign the final 
+target variable (label_template).
+    ->Large areas ( > 1200 m^2) or explicit warehouse requests are labeled as "warehouse".
+    ->Poor soil bearing capacity ( < 100 kpa) combined with small area ( < 200 m^2) defaults to "single_storey_house".
+    ->Moderate soil ( \ge 100 kpa) and medium area ( > 200 m^2) for a house request defaults to "duplex".
+
+
+📈 Data Schema (Columns)
+The generated CSV file contains the following columns, which will serve as the features (inputs) and the label (output) for the ML model:
+
+Column Name,Type,Description,Role in ML
+plot_length_m,Numeric,Length of the plot in meters.,Feature
+plot_width_m,Numeric,Width of the plot in meters.,Feature
+area_m2,Numeric,Total area of the plot.,Feature
+slope_percent,Numeric,Gradient of the land.,Feature
+soil_type,Categorical,"Type of soil (e.g., clay, sand).",Feature (needs encoding)
+
+bearing_capacity_kpa,Numeric,Soil's ability to support weight (kN/m2).,Critical Feature
+project_requirement,Categorical,"User's initial goal (house, shop, warehouse).",Feature (needs encoding)
+num_floors,Integer,User-requested number of floors.,Feature
+label_template,Categorical,Optimal Building Type assigned by rules.,Target Variable (Label)
+Other Columns,Numeric/Cat,"Plot shape, orientation, budget (auxiliary data).",Auxiliary
+
+▶️ Execution
+   Prerequisites
+   ->Ensure you have a modern Python environment installed.
+
+Steps to Generate Data:
+1.Navigate to the directory containing datageneration.py.
+2.Run the script using the Python interpreter:
+      python datageneration.py
+Expected Output
+The script will successfully create the output directory (data/) if it doesn't exist and print a confirmation message:
+
+Synthetic data written to: [Path/to/your/project]/data/synthetic_data.csv
+
+Next Step: Once the synthetic_data.csv file is generated, the next stage is Data Preprocessing 
+and Model Training using the XGBoost classifier.

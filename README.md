@@ -486,3 +486,187 @@ The API will return a structured JSON response similar to the following:
     "bricks_count": 3968
   }
 }
+
+
+🚀 Original Idea & MVP Scope (Important Note)
+Original Vision
+
+The original idea of this project was to build a fully automated AI-based construction planning system that starts with drone-based land scanning.
+
+In the complete version, the system would:
+
+->Capture land data using drone imagery
+
+->Analyze terrain, plot boundaries, and elevation
+
+->Combine drone data with soil reports
+
+->Automatically generate construction-ready designs and estimates
+
+->This approach would allow end-to-end automation with minimal manual input.
+
+Current Implementation (MVP Version)
+
+Due to limited hackathon time constraints, implementing drone data collection and image-based land analysis was not feasible.
+
+Therefore, in this hackathon version, we adopted a practical and realistic MVP approach:
+
+Users manually provide:
+
+->Land measurements
+
+->Soil bearing capacity
+
+->Slope information
+
+->Project requirements
+
+The AI system then:
+
+->Predicts the most suitable building type
+
+->Generates a parametric floorplan
+
+->Estimates construction materials
+
+This allows us to demonstrate the core AI intelligence and decision-making logic while keeping the system functional and testable within the given time.
+
+Why This Approach Was Chosen
+
+Ensures a working end-to-end prototype
+
+Focuses on AI-driven decision making
+
+Reduces dependency on hardware (drones)
+
+Allows faster validation of the core concept
+
+Makes the system easy to extend in future versions
+
+Future Extension
+
+The current system is designed in a modular way, making it easy to integrate drone-based land scanning in future releases.
+
+Planned future enhancements include:
+
+Drone image ingestion
+
+Terrain and boundary detection using computer vision
+
+Automatic extraction of land dimensions
+
+Integration of real soil test reports
+
+Fully automated construction planning pipeline
+
+Hackathon Relevance
+
+This MVP demonstrates:
+
+Clear problem understanding
+
+Scalable system design
+
+Practical AI implementation
+
+Strong foundation for a real-world product
+
+
+Planned Tools for Full-Scale Implementation
+
+The original vision of the project involves automated land data extraction using drone imagery.
+Due to time constraints, these tools were not implemented in the hackathon MVP but are planned for future versions.
+
+🔍 Computer Vision & Image Processing
+
+OpenCV
+
+Land boundary detection
+
+Plot shape extraction
+
+Terrain analysis
+
+Elevation and slope estimation
+
+NumPy
+
+Image matrix processing
+
+Feature extraction support
+
+🛰 Drone & Geospatial Data Processing
+
+Drone imagery / aerial photography
+
+GeoPandas
+
+Geospatial land data handling
+
+Rasterio
+
+Elevation and terrain data processing
+
+🧠 Generative AI Enhancements
+
+Generative models
+
+Automatic blueprint generation
+
+AI-assisted design variations
+
+Text-based GenAI
+
+Construction explanation
+
+Design justification
+
+User-friendly AI suggestions
+
+🧱 Construction & Design Extensions
+
+SVG / DXF generation
+
+Exportable blueprint drawings
+
+3D Visualization Libraries
+
+Room-based 3D model previews
+
+BIM Integration (Future Scope)
+
+Why These Tools Matter
+
+Using tools like OpenCV and drone imagery will allow the system to:
+
+Eliminate manual measurement input
+
+Automatically extract land dimensions
+
+Improve accuracy of planning
+
+Provide a fully automated end-to-end solution
+
+The current MVP is intentionally designed to be modular, making it easy to integrate these tools without major changes to the architecture.
+
+Hackathon MVP Justification
+
+Due to limited development time:
+
+Drone data capture
+
+Image-based land analysis
+
+OpenCV pipelines
+
+were deferred to future versions.
+
+Instead, the focus was on validating:
+
+AI decision-making
+
+Model accuracy
+
+End-to-end system integration
+
+This ensures a working prototype with a clear roadmap.

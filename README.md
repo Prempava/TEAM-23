@@ -22,25 +22,25 @@ drastically cuts down planning time, and empowers users to make data-driven deci
 
 
 
-->Intelligent Building Type Prediction: Uses a trained ML model to classify the most
+→ Intelligent Building Type Prediction: Uses a trained ML model to classify the most
 
 structurally and geographically suitable building type (e.g., Low-Rise Residential, High-Rise Commercial, Industrial Warehouse).
 
 
-
-->Automated Conceptual Floorplan: Generates a logical 2D floorplan layout based on 
+ 
+→ Automated Conceptual Floorplan: Generates a logical 2D floorplan layout based on 
 
 the predicted building type and user-defined room requirements using parametric design principles.
 
 
 
-->Preliminary Material Estimation: Calculates the required bulk quantities of primary 
+→ Preliminary Material Estimation: Calculates the required bulk quantities of primary 
 
 construction materials (concrete, steel, masonry) based on the generated design and structural inferences from soil data.
 
 
 
-->Easy-to-Use API: Provides a clean, modern API endpoint via FastAPI for seamless integration into web applications.
+→ Easy-to-Use API: Provides a clean, modern API endpoint via FastAPI for seamless integration into web applications.
 
 
 
@@ -52,17 +52,17 @@ Traditional construction planning is often manual, expensive, and inaccessible t
 
 
 
-->Complexity of Site Assessment: Non-experts struggle to interpret geotechnical data 
+→ Complexity of Site Assessment: Non-experts struggle to interpret geotechnical data 
 
 (like Soil Bearing Capacity) to determine if a site can support a multi-story structure.
 
 
 
-->High Upfront Costs: Initial consultation fees with architects and engineers for feasibility can be prohibitive.
+→ High Upfront Costs: Initial consultation fees with architects and engineers for feasibility can be prohibitive.
 
 
 
-->Time-Consuming Iteration: Manual generation and revision of initial concepts can take weeks.
+→ Time-Consuming Iteration: Manual generation and revision of initial concepts can take weeks.
 
 
 
@@ -82,19 +82,19 @@ The system operates as a modular, three-stage pipeline linked via a FastAPI serv
 
 
 
-->ML Classification Module: Takes numerical inputs (Land Area, Slope, Soil Bearing Capacity, etc.)
+→ ML Classification Module: Takes numerical inputs (Land Area, Slope, Soil Bearing Capacity, etc.)
 
 and uses the pre-trained XGBoost model to predict the optimal Building Type.
 
 
 
-->Floorplan Generator: Uses the predicted Building Type and user-defined rooms to generate a conceptual
+→ Floorplan Generator: Uses the predicted Building Type and user-defined rooms to generate a conceptual
 
 layout based on a rule-based/parametric engine (e.g., maximizing sunlight exposure, ensuring necessary room adjacencies).
 
 
 
-->Material Estimation Module: Applies engineering unit rates and formulas based on the generated floorplan 
+→ Material Estimation Module: Applies engineering unit rates and formulas based on the generated floorplan 
 
 area and foundation requirements (inferred from SBC) to output a preliminary Bill of Quantities.
 
@@ -139,11 +139,11 @@ mapped to the soil type and then randomized to simulate real-world variance.
 4.Labeling Logic (choose_template function): This critical function implements simple rule-based expert logic to assign the final 
 target variable (label_template).
 
-    ->Large areas ( > 1200 m^2) or explicit warehouse requests are labeled as "warehouse".
+    → Large areas ( > 1200 m^2) or explicit warehouse requests are labeled as "warehouse".
     
-    ->Poor soil bearing capacity ( < 100 kpa) combined with small area ( < 200 m^2) defaults to "single_storey_house".
+    → Poor soil bearing capacity ( < 100 kpa) combined with small area ( < 200 m^2) defaults to "single_storey_house".
     
-    ->Moderate soil ( \ge 100 kpa) and medium area ( > 200 m^2) for a house request defaults to "duplex".
+    → Moderate soil ( \ge 100 kpa) and medium area ( > 200 m^2) for a house request defaults to "duplex".
 
 
 📈 Data Schema (Columns)
@@ -167,7 +167,7 @@ Other Columns,Numeric/Cat,"Plot shape, orientation, budget (auxiliary data).",Au
 
    Prerequisites
    
-   ->Ensure you have a modern Python environment installed.
+   → Ensure you have a modern Python environment installed.
 
 Steps to Generate Data:
 
@@ -198,7 +198,7 @@ The script performs the following sequence of operations:
 
 2.Label Encoding: Converts the categorical target variable (label_template - e.g., 'duplex', 'warehouse') into numerical labels (label_numeric) for the classifier.
 
-     ->The fitted LabelEncoder is immediately saved (label_encoder.joblib) for later use in production, ensuring predictions can be converted back to meaningful names.
+     The fitted LabelEncoder is immediately saved (label_encoder.joblib) for later use in production, ensuring predictions can be converted back to meaningful names.
      
 3.Feature Selection: Defines the necessary input features (X) and the target variable (y).
 
@@ -340,14 +340,14 @@ The estimate_materials function calculates the requirements for three core compo
    
 This estimation assumes a constant slab thickness and a small factor for columns and beams (structural frame):
 
-->Slab Volume:
+→ Slab Volume:
             $$\text{Concrete}_{\text{Slab}} = \text{Area}_{\text{m2}} \times \text{Slab Thickness}_{\text{m}} \times \text{Floors}$$
 
      Slab Thickness is set to $0.12 m$.
 
-->Total Volume: The calculated slab volume is increased by a 5% factor ($1.05$) to conservatively account for the concrete needed in columns, beams, and foundation pads (assuming a basic, shallow foundation).
+→ Total Volume: The calculated slab volume is increased by a 5% factor ($1.05$) to conservatively account for the concrete needed in columns, beams, and foundation pads (assuming a basic, shallow foundation).
 
-->Code Implementation:
+→ Code Implementation:
 
 concrete_volume_m3 = area_m2 * slab_thickness_m * num_floors
 concrete_volume_m3 *= 1.05  # Factor for columns, beams, foundation
@@ -356,23 +356,23 @@ concrete_volume_m3 *= 1.05  # Factor for columns, beams, foundation
 
 Steel estimation uses a standard industry unit rate based on the total constructed floor area:
 
-->Unit Rate: A rate of $60 \text{ kg/m}^2$ of total area is applied, which is typical for reinforced concrete structures.
+→ Unit Rate: A rate of $60 \text{ kg/m}^2$ of total area is applied, which is typical for reinforced concrete structures.
 
-->Total Steel:
+→ Total Steel:
 $$\text{Steel}_{\text{kg}} = 60 \times \text{Area}_{\text{m2}} \times \text{Floors}$$
 
 3. Masonry (Bricks/Blocks) Count Calculation
    
 This estimation focuses on the external walls based on the building's perimeter:
 
-->Perimeter Estimate: Assumes a square building shape for simplicity: $\text{Perimeter} \approx 4 \times \sqrt{\text{Area}_{\text{m2}}}$.
+→ Perimeter Estimate: Assumes a square building shape for simplicity: $\text{Perimeter} \approx 4 \times \sqrt{\text{Area}_{\text{m2}}}$.
 
-->Total Wall Area: $\text{Wall Area} = \text{Perimeter} \times \text{Wall Height}$
+→ Total Wall Area: $\text{Wall Area} = \text{Perimeter} \times \text{Wall Height}$
    -Wall Height is $3$ meters per floor.
    
-->Brick Count: Calculates the number of bricks required by dividing the wall area by the standard area of one brick (assumed to be $0.075 m^2$ including mortar).
+→ Brick Count: Calculates the number of bricks required by dividing the wall area by the standard area of one brick (assumed to be $0.075 m^2$ including mortar).
 
-->Code Implementation (Simplified Perimeter):
+→ Code Implementation (Simplified Perimeter):
 perim = 4 * math.sqrt(area_m2) 
 wall_area = perim * (3 * num_floors)
 bricks = int(wall_area / 0.075)
@@ -398,7 +398,7 @@ Example Output (for $120 m^2$ and 1 floor)
 {'concrete_m3': 15.12, 'steel_kg': 7200, 'bricks_count': 1394}
 
 
-5. 🌐 FastAPI Deployment Module (src/main.py)
+5. A)FastAPI Deployment Module (src/main.py)
 
 This module serves as the AI-Based Construction Planning System (AI-CPS) API Endpoint. It integrates the trained Machine Learning model, the Parametric Floorplan Generator, and the Material Estimator into a single, high-performance web service using FastAPI.
 
@@ -488,6 +488,222 @@ The API will return a structured JSON response similar to the following:
 }
 
 
+
+5.B)Advanced FastAPI Deployment & End-to-End System
+This final and most comprehensive version of the FastAPI module (app.py) integrates all project components and adds advanced features
+like cost estimation and visual design generation, delivering a complete, interactive construction planning package.
+
+✨ New Features in Deployment
+
+The updated API extends the core functionality with several high-value additions:
+
+Feature,Source Module,Description
+Cost Estimation,estimate_cost,"Converts the estimated material quantities (concrete, steel, bricks) into a Total Cost (USD) using pre-defined unit pricing rules."
+AI Image Generation,generate_building_images,"Generates conceptual design visuals based on the predicted building type and floor count, serving them statically via the API."
+HTML Report Endpoint,/predict,"Delivers a formatted, easy-to-read HTML report directly in the browser, complete with all planning details and embedded images."
+Static File Serving,app.mount,"Serves images stored in the generated_images/ directory, making the visual output accessible via the API URL."
+
+
+🛠️ Updated Project Structure (Prerequisites)
+
+This module relies on the successful implementation and availability of four external utility modules:
+
+1)./parameter.py (Floorplan Generator)
+
+2)./material.py (Material Estimator)
+
+3)./cost.py (Cost Estimator)
+
+4)./image.py (AI Image Generator)
+
+The following directories must also exist in the project root:
+
+models/: Contains classifier.joblib and label_encoder.joblib.
+
+generated_images/: Directory where generate_building_images saves its output.
+
+🌐 API Endpoints
+
+The system now offers two distinct endpoints for accessing the planning data:
+
+Endpoint,Method,Response Type,Purpose
+/,GET,JSON,Simple health check.
+/predict,POST,HTML,"Primary User Interface: Returns a fully formatted, styled report for instant browser viewing."
+/predict/json,POST,JSON,"Programmatic Access: Returns raw, structured JSON data for integration into other applications (e.g., front-ends, dashboards)."
+
+Example HTML Output (/predict)
+
+The /predict endpoint dynamically generates HTML, providing a clear breakdown of the analysis:
+
+Predicted Building Type and Confidence.
+
+Total Estimated Cost.
+
+Detailed Material Quantities.
+
+Embedded AI-Generated Visuals.
+
+▶️ Running the Server
+
+1.Install all dependencies (FastAPI, Uvicorn, Pandas, Joblib, and libraries needed for your custom modules like estimate_cost and generate_building_images).
+
+2.Start the server:
+
+uvicorn src.main:app --reload
+
+3.Test the system using the interactive documentation at http://127.0.0.1:8000/docs.
+
+🔄 AI Orchestration Flow
+
+The core logic within the /predict endpoints follows this comprehensive flow:
+
+Input $\rightarrow$ Pandas DataFrame.
+
+DataFrame $\rightarrow$ ML Model $\rightarrow$ Predicted Label and Confidence.
+
+Predicted Label $\rightarrow$ Floorplan Generation.
+
+Floorplan Data $\rightarrow$ Material Estimation.
+
+Material Data $\rightarrow$ Cost Estimation.
+
+Predicted Label $\rightarrow$ AI Image Generation $\rightarrow$ Image URLs.
+
+Compile all results $\rightarrow$ Final HTML/JSON Report.
+
+
+
+6. 🖼️ AI Image Generation Module (image.py)
+
+This module introduces a cutting-edge feature to the AI-CPS: the ability to generate conceptual, photorealistic building exterior designs using a large AI model. 
+This visual output significantly enhances the final report and user experience by providing instant visualization of the predicted building type.
+
+⚙️ Module Functionality
+
+The generate_building_images function uses the Stable Diffusion text-to-image model, loaded via the diffusers library, to create custom visuals based on the structural inputs.
+
+1.Model Initialization: The script loads the pre-trained runwayml/stable-diffusion-v1-5 model pipeline into memory (using torch). It is optimized to run on a GPU (cuda) using float16 precision for speed, falling back to CPU if no GPU is available.
+
+2.Prompt Construction: A dynamic text prompt is generated for each image request, incorporating key parameters from the planning module:
+
+  building_type (e.g., "duplex", "warehouse")
+
+  floors
+
+  area
+
+  The prompt also includes stylistic modifiers like "realistic," "modern," and "photorealistic" to guide the visual output.
+
+3.Image Generation: The model runs the inference process (pipe(...)) with standard parameters (guidance_scale=7.5, num_inference_steps=30).
+
+4.Image Saving: The resulting images are saved locally to the generated_images/ directory.
+
+
+🛠️ Dependencies and Setup (Crucial)
+
+This module has the most demanding hardware and software requirements in the entire AI-CPS system.
+
+Prerequisites
+
+   Python: 3.8+
+
+   Deep Learning Libraries: torch (PyTorch)
+
+   AI Model Library: diffusers
+
+   Hardware: A dedicated NVIDIA GPU with CUDA support (e8GB VRAM or more) is highly recommended for practical use.
+   Running Stable Diffusion on a CPU will be extremely slow (potentially minutes per image).
+
+Installation
+
+You must install PyTorch and the Hugging Face diffusers library.
+
+# Example: Install PyTorch with CUDA 11.8 (Adjust based on your hardware)
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+
+# Install Diffusers and required supporting libraries
+pip install diffusers transformers accelerate
+
+
+Note: The accelerate library helps optimize model performance on GPU/CPU.
+
+Directory Setup
+
+The output path is fixed:
+
+    The script requires a directory named generated_images to exist in the same location (or a relative path that resolves correctly) for saving the PNG files.
+
+▶️ Usage and Integration
+
+    Function Call
+        The function is integrated directly into the FastAPI app.py script:
+
+# From app.py:
+image_paths = generate_building_images(
+    predicted_label,
+    num_floors,
+    area_m2,
+    count=2 # Generates 2 images by default
+)
+
+Output
+The function returns a list of local file paths (e.g., ['generated_images/duplex_1.png', 'generated_images/duplex_2.png']). 
+These paths are then used by the FastAPI module to embed the images into the final HTML report.
+
+7. 🗣️ AI Explanation Module (explainer.py)
+   
+This module generates a natural language explanation and justification for the entire AI-CPS planning outcome. 
+It translates the technical data (building type prediction, material quantities, cost) into simple, non-technical prose,
+fulfilling the goal of making construction planning accessible to everyone.
+
+
+⚙️ Module Functionality
+
+The generate_ai_explanation function acts as an interface to a local Large Language Model (LLM) through the ollama CLI tool:
+
+1.Prompt Construction: A detailed, dynamic prompt is created, feeding the LLM with all key outputs from the planning pipeline: the predicted building_type, area, number of floors, material quantities, and cost.
+
+2.LLM Execution: The Python script executes the external command: ollama run mistral. This command runs the Mistral model locally, passing the constructed prompt as input.
+
+3.Output Retrieval: The model processes the input and returns a comprehensive, reasoned explanation (stdout), which is then returned by the function.
+
+  This allows the AI-CPS to provide context behind its data-driven decisions.
+
+
+  🛠️ Dependencies and Setup (Crucial)
+  
+This module is unique as it relies on external, system-level software, not just Python packages.
+
+Prerequisites
+
+1.Ollama: The open-source tool for running large language models locally must be installed and configured on the deployment machine.
+
+2.Mistral Model: The mistral model must be pulled locally using the Ollama CLI:
+
+   ollama pull mistral
+
+3.subprocess module: This standard Python module is used to interface with the external ollama command line.
+
+Running the Module
+
+The script relies on the system environment variable $PATH containing the location of the ollama executable.
+
+# Example command executed by the Python script:
+ollama run mistral
+
+🔄 Integration with FastAPI (app.py)
+
+
+The generate_ai_explanation function is called within the FastAPI endpoints (though it's only explicitly shown in the HTML 
+output generation logic in the previous README's context). In a full implementation, the output of this function would be
+inserted into both the JSON response (as a field like "ai_justification") and prominently displayed in the HTML report.
+
+
+This integration point ensures that every planning result is accompanied by a human-readable summary, significantly boosting 
+the utility and perceived intelligence of the AI-CPS.
+
+
+
 🚀 Original Idea & MVP Scope (Important Note)
 Original Vision
 
@@ -495,15 +711,15 @@ The original idea of this project was to build a fully automated AI-based constr
 
 In the complete version, the system would:
 
-->Capture land data using drone imagery
+→ Capture land data using drone imagery
 
-->Analyze terrain, plot boundaries, and elevation
+→ Analyze terrain, plot boundaries, and elevation
 
-->Combine drone data with soil reports
+→ Combine drone data with soil reports
 
-->Automatically generate construction-ready designs and estimates
+→ Automatically generate construction-ready designs and estimates
 
-->This approach would allow end-to-end automation with minimal manual input.
+→ This approach would allow end-to-end automation with minimal manual input.
 
 Current Implementation (MVP Version)
 
@@ -513,21 +729,21 @@ Therefore, in this hackathon version, we adopted a practical and realistic MVP a
 
 Users manually provide:
 
-->Land measurements
+→ Land measurements
 
-->Soil bearing capacity
+→ Soil bearing capacity
 
-->Slope information
+→ Slope information
 
-->Project requirements
+→ Project requirements
 
 The AI system then:
 
-->Predicts the most suitable building type
+→ Predicts the most suitable building type
 
-->Generates a parametric floorplan
+→ Generates a parametric floorplan
 
-->Estimates construction materials
+→ Estimates construction materials
 
 This allows us to demonstrate the core AI intelligence and decision-making logic while keeping the system functional and testable within the given time.
 
